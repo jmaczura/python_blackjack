@@ -210,7 +210,7 @@ def solicit_insurance():
 
             response = input(f'{each_player.name}: Buy insurance? (Y/N): ')
             if response[0].lower() == 'y':
-                maximum_amount = each_player.current_hands[0].bet_amount // 2  # round to a whole number with //.
+                maximum_amount = each_player.current_hands[0].bet_amount // 2 # This rounds odd bets down to the nearest integer to avoid errors and <$1 values.
                 insurance_amount = input(f'For how much? Must be at least $1 but no more than ${maximum_amount} (default is ${maximum_amount}): ') or str(maximum_amount)
                 if int(insurance_amount) > each_player.bankroll - each_player.default_bet_amount:
                     print(f"{each_player.name} only has {each_player.bankroll - each_player.default_bet_amount} remaining.")
