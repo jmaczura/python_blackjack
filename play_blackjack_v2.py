@@ -175,7 +175,7 @@ def init_players():
     
 def get_bets():
     for each_player in players:
-        if each_player.bankroll > 0:
+        if each_player.bankroll > 10: # I decided $10 is the minimum bet for this game.
             last_bet = each_player.default_bet_amount
             if last_bet > each_player.bankroll: last_bet = each_player.bankroll
             min_reached = False
@@ -189,8 +189,10 @@ def get_bets():
                 else:
                     print("The minimum to play a hand is $10 and must be in whole dollars.")
         else:
-            # remove them from the game.
+            # If the player does not have enough chips to meet the minimum, remove them from the game.
+            print(f'{each_player.name} no longer has enough chips and has left the game.')
             players.remove(each_player)
+            time.sleep(2)
     return len(players) > 0
 
 def print_all_hands():
@@ -535,4 +537,3 @@ def lets_play():
 if __name__ == '__main__':
     
     lets_play()
-
