@@ -180,7 +180,7 @@ def get_bets():
             if last_bet > each_player.bankroll: last_bet = each_player.bankroll
             min_reached = False
             while min_reached == False:
-                bet_amount = input(f'{each_player.name}: How much do you want to bet? (default ${last_bet}, maximum ${"{:.2f}".format(each_player.bankroll)}): ') or last_bet
+                bet_amount = input(f'{each_player.name}: How much do you want to bet? (default ${last_bet}, maximum ${"{:.2f}".format(each_player.bankroll)}): ') or str(last_bet)
                 if bet_amount.isdigit() and int(bet_amount) > each_player.bankroll:
                     print("You don\'t have that much in chips. Try again.")
                 elif bet_amount.isdigit() and int(bet_amount) >= 10:
