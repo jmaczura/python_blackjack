@@ -72,9 +72,6 @@ class Deck:
     def shuffle(self):
         # shuffle the deck
         random.shuffle(self.all_cards)
-        # TO USE:
-        # new_deck = Deck()
-        # new_deck.shuffle()
 
     def deal_one_card(self):
         return self.all_cards.pop()
@@ -204,7 +201,7 @@ def print_all_hands():
         each_player.current_hands[0].print_hand_values()
 
 def solicit_insurance():
-    print("Uh oh! The dealer has an Ace showing. Insurance?")
+    print("Uh oh! The dealer has an Ace showing. You might want to consider buying insurance.")
     for each_player in players:
         insurance_flag = False
         while insurance_flag == False:
