@@ -19,7 +19,6 @@ Per Play:
         Assign cards to each hand to each player
         Print first dealer card
             - get total of both cards
-            
         Print both player cards
             - get total of both cards
             - If DEALER total == 21 and PLAYER Total < 21, Dealer Wins the round
@@ -29,7 +28,7 @@ Per Play:
                 - Hit: add new card to total
                     - if total <21, ask to hit or stay
                     - if total == 21, go to BlackJack Win (no 1.5x pay though)
-                - Stay     
+                - Stay
 '''
 
 import random
@@ -37,13 +36,14 @@ import time
 import os
 
 suits = ('Hearts ♥', 'Diamonds ♦', 'Spades ♠', 'Clubs ♣')
-ranks = ('Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace')
-values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8, 
+ranks = ('Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen',
+        'King', 'Ace')
+values = {'Two':2, 'Three':3, 'Four':4, 'Five':5, 'Six':6, 'Seven':7, 'Eight':8,
             'Nine':9, 'Ten':10, 'Jack':10, 'Queen':10, 'King':10, 'Ace':1}
 players = []
 
 class Card:
-
+    # Define a class for each card.
     def __init__(self,suit,rank):
         self.suit = suit
         self.rank = rank
@@ -58,15 +58,16 @@ class Deck:
         self.all_cards = []
 
         # Let's get a real 6-deck setup going.  No card counting allowed! :-D
-        for x in range(6):
+        for _ in range(6):
             for suit in suits:
                 for rank in ranks:
                     # Create each Card object
                     created_card = Card(suit,rank)
                     # Append each created Card instance to the all_cards list
                     self.all_cards.append(created_card)
-                
-        # For unit testing only. Sometimes we need to count on a certain deal order to test functionality.
+
+        # For unit testing only. Sometimes we need to count on a certain deal order
+        # to test functionality.
         self.blackjack_cards = [(Card('Hearts','Ace')),(Card('Hearts','King'))]
 
     def shuffle(self):
@@ -91,18 +92,10 @@ class Hand():
         self.bet_amount = 0
         self.outcome = "pending" # pending, win, lose, tie
         self.status = "playing" # playing, blackjack, stay, bust
-
-        self.insurance_bet = 0 # If the dealer shows an Ace card, players may bet up to half their original bet. Store the insurance bet amount here.
-
-    def print_cards_in_hand(self):
-            
-            for each_card in self.cards_in_hand:
-                print(f"  {each_card}")
+        # If the dealer shows an Ace card, players may bet up to half their
+        # original bet. Store the insurance bet amount here.
+        self.insurance_bet = 0
     
-    def print_initial_dealer_card(self):
-        print(f"Dealer is showing a {self.cards_in_hand[0]}.")
-        return self.cards_in_hand[0].value == 1 # to prompt for Insurance, return True if it's an Ace (value is defaulted to 1)
-
     def update_hand_totals(self):
         low_total = 0
         high_total = 0
@@ -110,50 +103,51 @@ class Hand():
 
         for each_card in self.cards_in_hand:
             low_total += each_card.value
-            if each_card.value == 1 and ace_found == False: # we found our first Ace card
+            if each_card.value == 1 and ace_found is False: # we found our first Ace card
                 ace_found = True
                 high_total += 11
             else:
                 high_total += each_card.value
         self.low_total = low_total
         self.high_total = high_total
+    
+    def __str__(self):
+        hand_text = ''
+        for each_card in self.cards_in_hand:
+            hand_text += "  " + str(each_card) + "\n"
 
-    def print_hand_values(self):
-        #print(f"{self.name} has these cards:")
+        self.update_hand_totals()
 
         if self.high_total == self.low_total or self.high_total > 21:
-            print(f"  ...for a total of {self.low_total}.")
+            hand_text += "  ...for a total of " + str(self.low_total) + "."
         elif self.high_total == 21:
-            print(f" ...for a total of {self.high_total}.")
+            hand_text += "  ...for a total of " + str(self.high_total) + "."
         else:
-            print(f"  ...for a total of {self.low_total} or {self.high_total}.")
-    
-        
+            hand_text += "  ...for a total of " + str(self.low_total) + " or " + str(self.high_total) + "."
+        return hand_text
+
+    def print_initial_dealer_card(self):
+        print(f"Dealer is showing a {self.cards_in_hand[0]}.")
+        # to prompt for Insurance, return True if it's an Ace (value is defaulted to 1)
+        return self.cards_in_hand[0].value == 1
 
 class Player():
-    # Represents the Player or Dealer (maybe)
+    # Represents an instance of a Player
     # Be able to add or remove cards from their "hand" (list of card objects)
-    # 
-    # use append("card") for single cards; use extend(newcards) to add multiple
+    
     def __init__(self,name,bankroll,default_bet_amount):
         self.name = name # give each player a Name (e.g. "The Dealer")
         self.current_hands = []
-        
-        #self.current_hand = [] # their current hand
         self.bankroll = bankroll # How much money they have.
         self.default_bet_amount = default_bet_amount # Default their bet again
-        #self.last_round_won = last_round_won
-        
+
     def __str__(self):
         return f"{self.name} has ${self.bankroll}."
-        
+
     def transact_bankroll(self, action, amount):
-        self.action = action
-        self.amount = amount
 
         if action == "win":
             self.bankroll += amount
-           # "{:.2f}".format(number_string)
             print(f'{self.name} won ${"{:.2f}".format(amount)} and now has ${"{:.2f}".format(self.bankroll)}.')
         else:
             self.bankroll -= amount
@@ -162,56 +156,51 @@ class Player():
 
 def init_players():
     num_of_players = "A"
-    while num_of_players.isdigit() == False or int(num_of_players) < 1 or int(num_of_players) > 4:
+    while not num_of_players.isdigit() or int(num_of_players) < 1 or int(num_of_players) > 4:
         num_of_players = input("How many players? (1-4) (default is 2): ") or "2"
-    
+
     for player in range(1,int(num_of_players)+1):
 
         player_bankroll = "A"
-        while player_bankroll.isdigit() == False or int(player_bankroll) < 10:
+        while not player_bankroll.isdigit() or int(player_bankroll) < 10:
             player_bankroll = input(f"How much money is Player {player} bringing? (default is $100): $") or "100"
-            
+
         players.append(Player(f"Player {player}",int(player_bankroll),10))
-    
+
 def get_bets():
-    for player in players:
-        if player.bankroll > 10: # I decided $10 is the minimum bet for this game.
-            last_bet = player.default_bet_amount
-            if last_bet > player.bankroll: last_bet = player.bankroll
-            min_reached = False
-            while min_reached == False:
-                bet_amount = input(f'{player.name}: How much do you want to bet? (default ${last_bet}, maximum ${"{:}".format(player.bankroll)}): ') or str(last_bet)
-                if bet_amount.isdigit() and int(bet_amount) > player.bankroll:
-                    print("You don\'t have that much in chips. Try again.")
-                elif bet_amount.isdigit() and int(bet_amount) >= 10:
-                    player.default_bet_amount = int(bet_amount)
-                    min_reached = True
-                else:
-                    print("The minimum to play a hand is $10 and must be in whole dollars.")
-        else:
-            # If the player does not have enough chips to meet the minimum, remove them from the game.
-            print(f'{player.name} no longer has enough chips and has left the game.')
-            players.remove(player)
-            time.sleep(2)
-    return len(players) > 0
+    for player in players:      
+        last_bet = player.default_bet_amount
+        if last_bet > player.bankroll:
+            last_bet = player.bankroll
+        min_reached = False
+        while not min_reached:
+            bet_amount = input(f'{player.name}: How much do you want to bet? (default ${last_bet}, maximum ${"{:.2f}".format(player.bankroll)}): ') or str(last_bet)
+            if bet_amount.isdigit() and int(bet_amount) > player.bankroll:
+                print("You don\'t have that much in chips. Try again.")
+            elif bet_amount.isdigit() and int(bet_amount) >= 10:
+                player.default_bet_amount = int(bet_amount)
+                min_reached = True
+            else:
+                print("The minimum to play a hand is $10 and must be in whole dollars.")
 
 def print_all_hands():
     for player in players:
         print(f"{player.name}\'s cards:")
-        player.current_hands[0].update_hand_totals()
-        player.current_hands[0].print_cards_in_hand()
-        player.current_hands[0].print_hand_values()
+        for hand in player.current_hands:
+            print(hand)
 
 def solicit_insurance():
     print("Uh oh! The dealer has an Ace showing. You might want to consider buying insurance.")
     for player in players:
         insurance_response = False
-        while insurance_response == False:
+        while not insurance_response:
 
             response = input(f'{player.name}: Buy insurance? (y/N): ') or 'n'
             if response[0].lower() == 'y':
-                maximum_amount = player.current_hands[0].bet_amount // 2 # This rounds odd bets down to the nearest integer to avoid errors and <$1 values.
-                insurance_amount = input(f'For how much? Must be at least $1 but no more than ${maximum_amount} (default is ${maximum_amount}): ') or str(maximum_amount)
+                # This rounds odd bets down to the nearest integer to avoid errors and <$1 values.
+                maximum_amount = player.current_hands[0].bet_amount // 2
+                insurance_amount = input('For how much? Must be at least $1 but no more than ' +
+                                    f'${maximum_amount} (default is ${maximum_amount}): ') or str(maximum_amount)
                 if insurance_amount.isnumeric() and int(insurance_amount) > player.bankroll - player.default_bet_amount:
                     print(f"{player.name} only has {player.bankroll - player.default_bet_amount} remaining.")
                 else:
@@ -283,12 +272,11 @@ def settle_blackjacks():
         elif player.current_hands[0].outcome == 'win' and player.current_hands[0].status == 'blackjack':
             player.transact_bankroll('win',player.current_hands[0].bet_amount*1.5) # pay 1.5x the bet amount
             blackjack_count += 1
-    
+
     # End this round by returning False if the dealer has Blackjack, or all of the players have Blackjacks.
     if dealer_hand.status == 'blackjack' or blackjack_count == num_of_players:
         return False
-    else:
-        return True
+    return True
 
 def solicit_player_actions(the_deck):
     dealer_goes = False # setting this to True only if at least one hand results in a Stay.
@@ -303,8 +291,7 @@ def solicit_player_actions(the_deck):
                     # Since we're clearing the screen for each Player, remind them of the Dealer's card first.
                     dealer_hand.print_initial_dealer_card()
                     print(f"\n{player.name} has: ")
-                    current_hand.print_cards_in_hand()
-                    current_hand.print_hand_values()
+                    print(current_hand)
 
                     # Split logic: If player's hand has only 2 cards, and those two cards are equal in value, offer to split.
                     # Added check to disallow splitting more than once by checking for length of current_hands[]
@@ -324,17 +311,15 @@ def solicit_player_actions(the_deck):
 
                     # Concatenate the Options from the options set() object, convert the player's response to lower case, and default "h" (for Hit).
                     player_action = input(f"{player.name}: {', '.join(options)} : ").lower() or "h"
-                    
+
                     if player_action[0] == 'h':
                         # The player wants to add another card to their hand.
                         print(f"{player.name} says, \'Hit me!\'")
 
                         current_hand.cards_in_hand.append(the_deck.deal_one_card())
                         print(f"{player.name} drew a {current_hand.cards_in_hand[-1]}")
-                        current_hand.update_hand_totals()
-                        current_hand.print_cards_in_hand()
-                        current_hand.print_hand_values()
-                        # evaluate if we busted, drew to 21, or are still under 21.
+                        print(current_hand)
+                        # Evaluate if we busted, drew to 21, or are still under 21.
                         if current_hand.low_total > 21:
                             current_hand.status = 'bust'
                             current_hand.outcome = 'lose'
@@ -350,27 +335,25 @@ def solicit_player_actions(the_deck):
                         else:
                             # The player's hand is not yet 21 or higher.  Offer them options to hit again or to stay.
                             ask_again = True
-                    elif player_action[0] == "s": #Stay
+                    elif player_action[0] == "s": # Stay
                         # The player is fine with this hand remaining as it is.
                         current_hand.status = 'stay'
                         ask_again = False
                         dealer_goes = True
                         time.sleep(2)
                     elif player_action[0] == "d" and '(D)ouble down' in options: # double down selected and is currently allowed.
-                        # Since we don't deduct their bankroll until after the round is complete (note: we should probably change this logic), 
+                        # Since we don't deduct their bankroll until after the round is complete (note: we should probably change this logic),
                         # check to see if they can double down by multiplying their current bet by 2, and deducting the full amount from their bankroll.
                         doubled_bet = current_hand.bet_amount * 2
                         if player.bankroll - doubled_bet < 0:
                             print("Sorry - you do not have enough chips to double down.")
                         else:
                             print("Doubling down your bet... one more card will be drawn.")
-                            
+
                             current_hand.bet_amount = doubled_bet
                             current_hand.cards_in_hand.append(the_deck.deal_one_card())
                             print(f"{player.name} drew a {current_hand.cards_in_hand[-1]}")
-                            current_hand.update_hand_totals()
-                            current_hand.print_cards_in_hand()
-                            current_hand.print_hand_values()
+                            print(current_hand)
                             # The rules for Double Down in Blackjack indicate the player must take one more card and then Stay.
                             current_hand.status = 'stay'
                             ask_again = False
@@ -384,7 +367,7 @@ def solicit_player_actions(the_deck):
                             time.sleep(2)
                         else:
                             print(f"Splitting your hand, and betting {current_hand.bet_amount} for the second hand.")
-                            
+
                             # Add a hand to the current player.
                             player.current_hands.append(Hand())
                             # Ensure the bet amount is the same as the first hand.
@@ -409,9 +392,8 @@ def process_dealer_hand(the_deck):
     os.system('cls' if os.name == 'nt' else 'clear')
     print("The dealer turns their second card over to reveal... ")
     time.sleep(1)
-    dealer_hand.print_cards_in_hand()
-    dealer_hand.print_hand_values()
-    
+    print(dealer_hand)
+
     while dealer_hand.high_total < 17 or (dealer_hand.high_total > 21 and dealer_hand.low_total < 17):
         # Draw another card until the hand is 17 or higher.
         dealer_hand.cards_in_hand.append(the_deck.deal_one_card())
@@ -429,33 +411,32 @@ def process_dealer_hand(the_deck):
         print(f"The dealer went bust with a total of {dealer_hand.high_total}!")
         dealer_hand.outcome = 'lose'
         dealer_hand.status = 'bust'
-    #return dealer_hand.status == 'bust'
 
 def settle_the_bets():
     # Let's look at each player's Status and if needed, compare it to that of the Dealer.
     dealer_total = dealer_hand.high_total
-    if dealer_total > 21: dealer_total = dealer_hand.low_total
-    
+    if dealer_total > 21:
+        dealer_total = dealer_hand.low_total
+
     print('\n')
     for player in players:
         for current_hand in player.current_hands:
             if current_hand.status == 'stay':
                 if dealer_hand.status == 'bust': # pay every player who Stood (status = Stand)
-                    #if player.current_hands[0].low_total > dealer_hand.low_total:
-                    if current_hand.status == 'stay':
-                        player.transact_bankroll('win',current_hand.bet_amount)
+                    player.transact_bankroll('win',current_hand.bet_amount)
                 else: # compare the best dealer hand to the best player hand.
-                    if current_hand.status == 'stay':
-                        player_total = current_hand.high_total
-                        if player_total > 21: player_total = current_hand.low_total
-                        if player_total > dealer_total:
-                            player.transact_bankroll('win',current_hand.bet_amount)
-                        elif player_total < dealer_total:
-                            player.transact_bankroll('lose',current_hand.bet_amount)
-                        else: # tie
-                            print(f'{player.name} tied with the dealer and still has ${"{:.2f}".format(player.bankroll)}.')
+                    player_total = current_hand.high_total
+                    if player_total > 21:
+                        player_total = current_hand.low_total
+                    if player_total > dealer_total:
+                        player.transact_bankroll('win',current_hand.bet_amount)
+                    elif player_total < dealer_total:
+                        player.transact_bankroll('lose',current_hand.bet_amount)
+                    else: # tie
+                        print(f'{player.name} tied with the dealer and still has ${"{:.2f}".format(player.bankroll)}.')
             elif current_hand.status == 'blackjack':
-                continue # We already paid the player when they got blackjack.
+                #We already paid the player when they got blackjack.
+                print(f'{player.name} was already paid for having Blackjack.')
             else: # player went bust
                 player.transact_bankroll('lose',current_hand.bet_amount)
             # Check for Insurance.
@@ -464,25 +445,36 @@ def settle_the_bets():
                 player.transact_bankroll('lose',current_hand.insurance_bet)
 
 def determine_active_players():
-    for player in players:
-        if player.bankroll == 0:
-            players.remove(player)
+    # Since we iterate through the players[] list object during gameplay, evaluate
+    # how many players can still play. We need to reverse the list of "broke" players
+    # because removing/popping the first player, for example, causes the second player
+    # to immediately take on an index of 0.  This condition only happens if multiple
+    # players go broke in the same round.
+    broke_players = []
+    for index, player in enumerate(players):
+        if player.bankroll < 10:
+            print(f'{player.name} no longer has enough chips and has left the game.')
+            broke_players.append(index)
+    broke_players.sort(reverse=True)
+    for index in broke_players:
+        players.pop(index)
     return len(players)
 
-# This variable doesn't work at the top, or seemingly anywhere else than after the Class definitions.
+# This variable doesn't work at the top, or seemingly anywhere else other than after the Class definitions. <shrug>
 dealer_hand = Hand()
 
 def lets_play():
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Welcome to Python Blackjack! $10 mininum.  Dealer stands on 17 or higher.\n")
-    
+
     # This will hold each Player class object instance.
     init_players()
 
     while True:
+        # Clear the screen.
         os.system('cls' if os.name == 'nt' else 'clear')
         # Let's use this to evaluate after each Part whether there are players' hands left to keep going until the end.
-        continue_game = True
+        continue_round = True
 
         # Prepare the deck.
         the_deck = Deck()
@@ -497,19 +489,20 @@ def lets_play():
         ace_card_showing = dealer_hand.print_initial_dealer_card()
 
         # If the dealer is showing an Ace card, ask each player if they want to pay for insurance.
-        if ace_card_showing: solicit_insurance()
-        
+        if ace_card_showing:
+            solicit_insurance()
+
         # Print out the cards and values for all players.
         print_all_hands()
 
         # Check for Blackjacks held by the dealer and players.
         eval_for_blackjacks()
-        
+
         # Pay any Blackjacks.  This could end the game if the dealer has Blackjack and/or all player(s) have Blackjack, so return a "continue game" Boolean.
         continue_round = settle_blackjacks()
 
         # Now it's time for each player to hit, stay, split, or double down.
-        if continue_round == True:
+        if continue_round:
             #continue_game = solicit_player_actions(the_deck)
             dealer_goes = solicit_player_actions(the_deck)
             # Have the dealer hit or stay.  Skip this part this if no player is in Stay status.
@@ -523,17 +516,15 @@ def lets_play():
         if num_of_players > 0:
             play_again = input("Play another round? (Y/n): ").lower() or "y"
             if play_again[0] == 'y':
-                continue
-            else:
-                for player in players:
-                    print(f'{player.name} leaves the table with ${"{:.2f}".format(player.bankroll)}.')
-                break
+                continue            
+            for player in players:
+                print(f'{player.name} leaves the table with ${"{:.2f}".format(player.bankroll)}.')
+            break
         else:
             print("No players have chips left. Ending the game!")
             break
 
-    print(f"\nThanks for playing!")
+    print("\nThanks for playing!")
 
 if __name__ == '__main__':
-    
     lets_play()
