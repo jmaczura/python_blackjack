@@ -95,7 +95,7 @@ class Hand():
         # If the dealer shows an Ace card, players may bet up to half their
         # original bet. Store the insurance bet amount here.
         self.insurance_bet = 0
-    
+
     def update_hand_totals(self):
         low_total = 0
         high_total = 0
@@ -110,7 +110,7 @@ class Hand():
                 high_total += each_card.value
         self.low_total = low_total
         self.high_total = high_total
-    
+
     def __str__(self):
         hand_text = ''
         for each_card in self.cards_in_hand:
@@ -130,11 +130,14 @@ class Hand():
         print(f"Dealer is showing a {self.cards_in_hand[0]}.")
         # to prompt for Insurance, return True if it's an Ace (value is defaulted to 1)
         return self.cards_in_hand[0].value == 1
+    
+    def add_a_card(self,the_deck):
+        # Adds a card from the deck to the current Hand.
+        self.cards_in_hand.append(the_deck.deal_one_card())
 
 class Player():
     # Represents an instance of a Player
     # Be able to add or remove cards from their "hand" (list of card objects)
-    
     def __init__(self,name,bankroll,default_bet_amount):
         self.name = name # give each player a Name (e.g. "The Dealer")
         self.current_hands = []
@@ -168,7 +171,7 @@ def init_players():
         players.append(Player(f"Player {player}",int(player_bankroll),10))
 
 def get_bets():
-    for player in players:      
+    for player in players:
         last_bet = player.default_bet_amount
         if last_bet > player.bankroll:
             last_bet = player.bankroll
@@ -218,22 +221,25 @@ def deal_out_all_cards(the_deck):
         # Add a hand object
         player.current_hands.append(Hand())
         # Add two cards.
-        # In a perfect mimicry of a live game, each player gets a card, then the dealer gets 1 card, then card 2 to each player, and finally the dealer.
-        player.current_hands[0].cards_in_hand.append(the_deck.deal_one_card())
-        player.current_hands[0].cards_in_hand.append(the_deck.deal_one_card())
+        # In a perfect mimicry of a live game, each player gets a card, then the dealer gets 1 card,
+        # then card 2 to each player, and finally the dealer. Since we're randomizing every deal,
+        # there is no impact to the outcome, and it makes the code simpler.
+        player.current_hands[0].add_a_card(the_deck)
+        player.current_hands[0].add_a_card(the_deck)
         player.current_hands[0].bet_amount = player.default_bet_amount
 
     # Deal two cards to the dealer.
     dealer_hand.cards_in_hand.clear()
-    dealer_hand.cards_in_hand.append(the_deck.deal_one_card())
-    dealer_hand.cards_in_hand.append(the_deck.deal_one_card())
+    #dealer_hand.cards_in_hand.append(the_deck.deal_one_card())
+    #dealer_hand.cards_in_hand.append(the_deck.deal_one_card())
+    dealer_hand.add_a_card(the_deck)
+    dealer_hand.add_a_card(the_deck)
     # Unit Test for Dealer blackjack.
     #dealer_hand.cards_in_hand.append(the_deck.blackjack_cards.pop(0))
     #dealer_hand.cards_in_hand.append(the_deck.blackjack_cards.pop())
 
     dealer_hand.outcome = 'pending'
     dealer_hand.status = 'playing'
-
 
 def eval_for_blackjacks():
     dealer_hand.update_hand_totals()
@@ -316,7 +322,8 @@ def solicit_player_actions(the_deck):
                         # The player wants to add another card to their hand.
                         print(f"{player.name} says, \'Hit me!\'")
 
-                        current_hand.cards_in_hand.append(the_deck.deal_one_card())
+                        #current_hand.cards_in_hand.append(the_deck.deal_one_card())
+                        current_hand.add_a_card(the_deck)
                         print(f"{player.name} drew a {current_hand.cards_in_hand[-1]}")
                         print(current_hand)
                         # Evaluate if we busted, drew to 21, or are still under 21.
@@ -351,7 +358,7 @@ def solicit_player_actions(the_deck):
                             print("Doubling down your bet... one more card will be drawn.")
 
                             current_hand.bet_amount = doubled_bet
-                            current_hand.cards_in_hand.append(the_deck.deal_one_card())
+                            current_hand.add_a_card(the_deck)
                             print(f"{player.name} drew a {current_hand.cards_in_hand[-1]}")
                             print(current_hand)
                             # The rules for Double Down in Blackjack indicate the player must take one more card and then Stay.
@@ -375,13 +382,10 @@ def solicit_player_actions(the_deck):
                             # Move the second card from the first hand to the second hand.
                             player.current_hands[1].cards_in_hand.append(player.current_hands[0].cards_in_hand.pop())
                             # Draw a new card to each Hand.
-                            player.current_hands[0].cards_in_hand.append(the_deck.deal_one_card())
+                            player.current_hands[0].add_a_card(the_deck)
                             print(f"{player.name} drew a {player.current_hands[0].cards_in_hand[-1]} on the first hand.")
-                            player.current_hands[1].cards_in_hand.append(the_deck.deal_one_card())
+                            player.current_hands[1].add_a_card(the_deck)
                             print(f"{player.name} drew a {player.current_hands[1].cards_in_hand[-1]} on the second hand.")
-                            # Update the total values for each hand.
-                            player.current_hands[0].update_hand_totals()
-                            player.current_hands[1].update_hand_totals()
                             time.sleep(2)
                     else:
                         ask_again = True
@@ -396,7 +400,7 @@ def process_dealer_hand(the_deck):
 
     while dealer_hand.high_total < 17 or (dealer_hand.high_total > 21 and dealer_hand.low_total < 17):
         # Draw another card until the hand is 17 or higher.
-        dealer_hand.cards_in_hand.append(the_deck.deal_one_card())
+        dealer_hand.add_a_card(the_deck)
         print(f'{dealer_hand.cards_in_hand[-1]} drawn from the deck.')
         dealer_hand.update_hand_totals()
     if dealer_hand.high_total < 22:
@@ -503,7 +507,6 @@ def lets_play():
 
         # Now it's time for each player to hit, stay, split, or double down.
         if continue_round:
-            #continue_game = solicit_player_actions(the_deck)
             dealer_goes = solicit_player_actions(the_deck)
             # Have the dealer hit or stay.  Skip this part this if no player is in Stay status.
             if dealer_goes:
