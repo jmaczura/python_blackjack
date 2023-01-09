@@ -84,11 +84,8 @@ class Deck:
 class Hand():
     def __init__(self):
         self.cards_in_hand = [] # we will put Cards from the Deck in here.
-
         self.low_total = 0
         self.high_total = 0
-        #self.low_total, self.high_total = self.update_hand_totals()
-
         self.bet_amount = 0
         self.outcome = "pending" # pending, win, lose, tie
         self.status = "playing" # playing, blackjack, stay, bust
@@ -188,9 +185,8 @@ def get_bets():
 
 def print_all_hands():
     for player in players:
-        print(f"{player.name}\'s cards:")
-        for hand in player.current_hands:
-            print(hand)
+        print(f'{player.name}\'s cards:',*player.current_hands,sep="\n")
+        time.sleep(2)
 
 def solicit_insurance():
     print("Uh oh! The dealer has an Ace showing. You might want to consider buying insurance.")
