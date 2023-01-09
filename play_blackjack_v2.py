@@ -24,11 +24,11 @@ Per Play:
             - If DEALER total == 21 and PLAYER Total < 21, Dealer Wins the round
                 - if Dealer Total == 21 and Player Total == 21, go to Tie
             - if 21, pay 1.5x and end
-            - Ask to hit or stay
+            - Ask to hit or Stand
                 - Hit: add new card to total
-                    - if total <21, ask to hit or stay
+                    - if total <21, ask to hit or stand
                     - if total == 21, go to BlackJack Win (no 1.5x pay though)
-                - Stay
+                - Stand
 '''
 
 import random
@@ -88,7 +88,7 @@ class Hand():
         self.high_total = 0
         self.bet_amount = 0
         self.outcome = "pending" # pending, win, lose, tie
-        self.status = "playing" # playing, blackjack, stay, bust
+        self.status = "playing" # playing, blackjack, stand, bust
         # If the dealer shows an Ace card, players may bet up to half their
         # original bet. Store the insurance bet amount here.
         self.insurance_bet = 0
@@ -243,7 +243,7 @@ def eval_for_blackjacks():
     if dealer_blackjack:
         print("Oh boy... Dealer has Blackjack!")
         #dealer_hand.outcome = "pending" # pending, win, lose, tie
-        dealer_hand.status = "blackjack" # playing, blackjack, stay, bust
+        dealer_hand.status = "blackjack" # playing, blackjack, stand, bust
         time.sleep(2)
     for player in players:
         if player.current_hands[0].high_total == 21:
@@ -281,7 +281,7 @@ def settle_blackjacks():
     return True
 
 def solicit_player_actions(the_deck):
-    dealer_goes = False # setting this to True only if at least one hand results in a Stay.
+    dealer_goes = False # setting this to True only if at least one hand results in a Stand.
     for player in players:
         for current_hand in player.current_hands:
             if current_hand.outcome == 'pending':
@@ -330,17 +330,17 @@ def solicit_player_actions(the_deck):
                             time.sleep(2)
                             ask_again = False
                         elif current_hand.low_total == 21 or current_hand.high_total == 21:
-                            current_hand.status = 'stay' # Assigning 'stay' instead of 'blackjack' because the 1.5x payout only occurs when the first two cards = 21.
+                            current_hand.status = 'stand' # Assigning 'stand' instead of 'blackjack' because the 1.5x payout only occurs when the first two cards = 21.
                             current_hand.outcome = 'pending' # the dealer might draw to 21 as well, so we don't know if it is a Winner just yet.
                             ask_again = False
                             dealer_goes = True
                             time.sleep(2)
                         else:
-                            # The player's hand is not yet 21 or higher.  Offer them options to hit again or to stay.
+                            # The player's hand is not yet 21 or higher.  Offer them options to hit again or to stand.
                             ask_again = True
-                    elif player_action[0] == "s": # Stay
+                    elif player_action[0] == "s": # Stand
                         # The player is fine with this hand remaining as it is.
-                        current_hand.status = 'stay'
+                        current_hand.status = 'stand'
                         ask_again = False
                         dealer_goes = True
                         time.sleep(2)
@@ -357,8 +357,8 @@ def solicit_player_actions(the_deck):
                             current_hand.add_a_card(the_deck)
                             print(f"{player.name} drew a {current_hand.cards_in_hand[-1]}")
                             print(current_hand)
-                            # The rules for Double Down in Blackjack indicate the player must take one more card and then Stay.
-                            current_hand.status = 'stay'
+                            # The rules for Double Down in Blackjack indicate the player must take one more card and then Stand.
+                            current_hand.status = 'stand'
                             ask_again = False
                             dealer_goes = True
                         time.sleep(3)
@@ -400,9 +400,9 @@ def process_dealer_hand(the_deck):
         print(f'{dealer_hand.cards_in_hand[-1]} drawn from the deck.')
         dealer_hand.update_hand_totals()
     if dealer_hand.high_total < 22:
-        print(f"The dealer is staying with a total of {dealer_hand.high_total}.")
+        print(f"The dealer is standing with a total of {dealer_hand.high_total}.")
     elif dealer_hand.low_total < 22:
-        print(f"The dealer is staying with a total of {dealer_hand.low_total}.")
+        print(f"The dealer is standing with a total of {dealer_hand.low_total}.")
     elif dealer_hand.low_total > 21:
         print(f"The dealer went bust with a total of {dealer_hand.low_total}!")
         dealer_hand.outcome = 'lose'
@@ -421,7 +421,7 @@ def settle_the_bets():
     print('\n')
     for player in players:
         for current_hand in player.current_hands:
-            if current_hand.status == 'stay':
+            if current_hand.status == 'stand':
                 if dealer_hand.status == 'bust': # pay every player who Stood (status = Stand)
                     player.transact_bankroll('win',current_hand.bet_amount)
                 else: # compare the best dealer hand to the best player hand.
@@ -501,10 +501,10 @@ def lets_play():
         # Pay any Blackjacks.  This could end the game if the dealer has Blackjack and/or all player(s) have Blackjack, so return a "continue game" Boolean.
         continue_round = settle_blackjacks()
 
-        # Now it's time for each player to hit, stay, split, or double down.
+        # Now it's time for each player to hit, stand, split, or double down.
         if continue_round:
             dealer_goes = solicit_player_actions(the_deck)
-            # Have the dealer hit or stay.  Skip this part this if no player is in Stay status.
+            # Have the dealer hit or stand.  Skip this part this if no player is in Stand status.
             if dealer_goes:
                 process_dealer_hand(the_deck)
             # Pay up, or pay out, each hand.
